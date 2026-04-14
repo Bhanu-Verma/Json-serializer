@@ -4,12 +4,6 @@
 #include <cassert>
 #include "json_lib.hpp"
 
-#include "tester/my_test_lib.hpp"
-
-TEST(BasicTest) {
-    ASSERT( 1 == 1);
-}
-
 using namespace std::string_literals;
 
 int main() {
@@ -60,11 +54,25 @@ int main() {
         std::cout << "\nAll manual construction tests passed!\n";
 
         // serialization test
-        const std::string addr_as_str = address.serialize();
-        std::cout << addr_as_str << '\n';
+        // const std::string addr_as_str = address.serialize();
+        // std::cout << addr_as_str << '\n';
 
-        const std::string stud_as_str = stud.serialize();
-        std::cout << stud_as_str << '\n';        
+        // const std::string stud_as_str = stud.serialize();
+        // std::cout << stud_as_str << '\n';        
+
+        // const std::string pretty_addr = json::prettyPrint(address);
+        // std::cout << pretty_addr << '\n';
+
+        // const std::string pretty_stud = json::prettyPrint(stud);
+        // std::cout << pretty_stud << '\n';
+
+        json::Json brv;
+        brv["branch"] = json::JsonValue("cse");
+        brv["names"] = std::vector<json::JsonValue>{};
+        brv["bhanu"] = json::JsonValue(stud);
+
+        const std::string pretty_brv = json::prettyPrint(brv);
+        std::cout << pretty_brv << '\n';
 
     } catch (const std::exception& e) {
         std::cerr << "Test failed with error: " << e.what() << "\n";
