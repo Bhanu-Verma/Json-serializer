@@ -294,6 +294,105 @@ TEST(Serialize_Empty_Containers) {
     ASSERT(obj.serialize() == "{\"empty_list\":[]}");
 }
 
+// Helper to make test reading easier
+// Assuming INDENT_CHAR is ' ' (space)
+TEST(PrettyPrint_BasicObject) {
+    Json root;
+    root["id"] = 1.0;
+    root["valid"] = true;
+
+    // We use prettyPrint(root) which starts at indent 0
+    std::string out = prettyPrint(root);
+
+    /* Expected:
+    {
+     "id": 1,
+     "valid": true
+    }
+    */
+
+    // 1. Check for Newlines
+    ASSERT(out.find('\n') != std::string::npos);
+    
+    // 2. Check for Space after colon (Pretty Print specific)
+    ASSERT(out.find("\": ") != std::string::npos);
+
+    // 3. Check for indentation of the keys (Level 1 = 1 space)
+    ASSERT(out.find("\n \"id\"") != std::string::npos);
+    ASSERT(out.find("\n \"valid\"") != std::string::npos);
+
+    // 4. Check that the closing brace is NOT indented (Level 0)
+    ASSERT(out.back() == '}');
+    ASSERT(out[out.size() - 2] == '\n'); 
+}
+
+TEST(PrettyPrint_ArrayIndentation) {
+    Json root;
+    std::vector<JsonValue> vals = { JsonValue(1.0), JsonValue(2.0) };
+    root["list"] = vals;
+
+    std::string out = prettyPrint(root);
+
+    /* Expected:
+    {
+     "list": [
+      1,
+      2
+     ]
+    }
+    */
+
+    // The elements 1 and 2 should be at level 2 (2 spaces)
+    ASSERT(out.find("\n  1") != std::string::npos);
+    ASSERT(out.find("\n  2") != std::string::npos);
+    
+    // The closing bracket ] should be at level 1 (1 space)
+    ASSERT(out.find("\n ]") != std::string::npos);
+}
+
+TEST(PrettyPrint_NestedObjects) {
+    Json root;
+    root["level1"]["level2"]["level3"] = "deep"s;
+
+    std::string out = prettyPrint(root);
+
+    // Check depth of level 3: 
+    // root (0) -> level1 (1) -> level2 (2) -> level3 (3)
+    // Level 3 key should have 3 spaces
+    ASSERT(out.find("\n   \"level3\": \"deep\"") != std::string::npos);
+    
+    // Verify the staircase of closing braces
+    ASSERT(out.find("\n  }") != std::string::npos);
+    ASSERT(out.find("\n }") != std::string::npos);
+    ASSERT(out.find("\n}") != std::string::npos);
+}
+
+TEST(PrettyPrint_EmptyContainers) {
+    Json root;
+    root["empty_obj"] = Json(); // Should result in {}
+    root["empty_arr"] = std::vector<JsonValue>{}; // Should result in []
+
+    std::string out = prettyPrint(root);
+
+    // Standard says empty containers usually stay on one line even in pretty print
+    ASSERT(out.find("\"empty_obj\": {}") != std::string::npos);
+    ASSERT(out.find("\"empty_arr\": []") != std::string::npos);
+}
+
+TEST(PrettyPrint_ComparisonWithMinified) {
+    Json root;
+    root["a"] = 1.0;
+    root["b"] = 2.0;
+
+    std::string pretty = prettyPrint(root);
+    std::string minified = root.serialize(-1);
+
+    // Minified should have no newlines, Pretty should have several
+    ASSERT(minified.find('\n') == std::string::npos);
+    ASSERT(pretty.find('\n') != std::string::npos);
+    ASSERT(pretty.size() > minified.size());
+}
+
 int main() {
     MyTester::runAllTests();
     return 0;
