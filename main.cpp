@@ -59,11 +59,18 @@ int main() {
         
         std::cout << "\nAll manual construction tests passed!\n";
 
+        // serialization test
+        const std::string addr_as_str = address.serialize();
+        std::cout << addr_as_str << '\n';
+
+        const std::string stud_as_str = stud.serialize();
+        std::cout << stud_as_str << '\n';        
+
     } catch (const std::exception& e) {
         std::cerr << "Test failed with error: " << e.what() << "\n";
         return 1;
     }
 
-    MyTester::runAllTests();
+    // MyTester::runAllTests();
     return 0;
 }

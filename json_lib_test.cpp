@@ -217,3 +217,84 @@ TEST(Json_3_depth) {
     ASSERT(stud["address"]["pincode"].get<double>() == 207401.0);
     ASSERT(stud["address"]["comments"]["type"].get<std::string>() == "Landmark");
 }
+
+/**                 Serialization Tests              */
+
+#include "json.hpp"
+#include "json_value.hpp"
+#include "tester/my_test_lib.hpp"
+#include <string>
+
+using namespace json;
+using namespace std::string_literals;
+
+// --- 1. Primitive Serialization (Minified) ---
+
+TEST(Serialize_Primitives_Minified) {
+    Json root;
+    root["name"] = "Bhanu"s;
+    root["age"] = 21.0;
+    root["is_student"] = true;
+    root["middle_name"] = nullptr;
+
+    std::string out = root.serialize();
+
+    // No spaces after ':' or ','
+    ASSERT(out.find("\"name\":\"Bhanu\"") != std::string::npos);
+    ASSERT(out.find("\"is_student\":true") != std::string::npos);
+    ASSERT(out.find("\"middle_name\":null") != std::string::npos);
+}
+
+// --- 2. Precision Double Test (Ostream) ---
+
+TEST(Serialize_Double_Precision) {
+    Json root;
+    // Using ostream/oss should result in "5.5" instead of "5.500000"
+    root["score"] = 5.5;
+    root["integer"] = 100.0;
+
+    std::string out = root.serialize();
+
+    ASSERT(out.find("\"score\":5.5") != std::string::npos);
+    ASSERT(out.find("\"integer\":100") != std::string::npos);
+}
+
+// --- 3. Array Serialization (Minified) ---
+
+TEST(Serialize_Arrays_Minified) {
+    Json root;
+    std::vector<JsonValue> grades = { JsonValue(9.5), JsonValue(10.0) };
+    root["grades"] = grades;
+
+    std::string out = root.serialize();
+
+    // Verifying format: [9.5,10] 
+    ASSERT(out.find("\"grades\":[9.5,10]") != std::string::npos);
+}
+
+// --- 4. Nested Object (Minified) ---
+
+TEST(Serialize_Nested_Minified) {
+    Json root;
+    root["outer"]["inner"] = 42.0;
+
+    std::string out = root.serialize();
+
+    // Full structure: {"outer":{"inner":42}}
+    ASSERT(out == "{\"outer\":{\"inner\":42}}");
+}
+
+// --- 5. Empty Structures ---
+
+TEST(Serialize_Empty_Containers) {
+    Json obj;
+    ASSERT(obj.serialize() == "{}");
+
+    obj["empty_list"] = std::vector<JsonValue>{};
+    ASSERT(obj.serialize() == "{\"empty_list\":[]}");
+}
+
+int main() {
+    MyTester::runAllTests();
+    return 0;
+}
