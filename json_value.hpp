@@ -32,20 +32,21 @@ namespace json {
         // 1. Constructors
         JsonValue() : type_{Null}, data_{std::monostate{}} {}
 
-        explicit constexpr JsonValue(std::nullptr_t null) 
+        constexpr JsonValue(std::nullptr_t null) 
             : type_{Null}, data_{std::monostate{}} {}
 
-        explicit constexpr JsonValue(bool val) 
+        constexpr JsonValue(bool val) 
             : type_{Bool}, data_{val} {}
 
-        explicit constexpr JsonValue(double val) 
+        constexpr JsonValue(double val) 
             : type_{Number}, data_{val} {}
 
-        explicit JsonValue(const std::string& val);
-        explicit JsonValue(const char* val);
-        explicit JsonValue(const std::vector<JsonValue>& val);
+        JsonValue(const std::string& val);
+        JsonValue(const char* val);
+        JsonValue(const std::vector<JsonValue>& val);
         
-        explicit JsonValue(const Json& val);
+        
+        JsonValue(const Json& val);
 
         // 2. Special Member Functions 
         JsonValue(const JsonValue& other);
