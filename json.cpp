@@ -78,6 +78,12 @@ std::string json::prettyPrint( const Json &obj )
     return obj.serialize(0);
 }
 
+std::ostream &json::operator<<(std::ostream &o, const Json &j)
+{
+    std::string temp { json::prettyPrint(j) };
+    return o << temp;
+}
+
 std::string json::Json::serialize(int indent) const
 {
     if( obj_.empty() ) return "{}";

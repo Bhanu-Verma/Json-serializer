@@ -3,66 +3,82 @@
 #include <string>
 #include <cassert>
 #include "json_lib.hpp"
+#include "parser.hpp"
+#include "tester/my_test_lib.hpp"
 
 using namespace std::string_literals;
 
 int main() {
     try {
-        // --- 1. Basic Object Creation ---
-        json::Json stud;
-        
-        // Testing operator[] and assignment from different types
-        stud["name"] = "Bhanu Verma"s;
-        stud["rollno"] = 22075021.0; // JSON numbers are doubles
-        stud["cpi"] = 9.77;
-        stud["is_graduated"] = false;
+        std::string neuralNet = R"(
+            {
+                "Layers": [
+                    {
+                    "activationFunction": 2,
+                    "bias": [0.0, 3.0189532406755846],
+                    "dropOut": 0.0,
+                    "inputSize": 4,
+                    "outputSize": 2,
+                    "weights": [
+                        [
+                        -0.08346827309618231, -0.015846791948910366, -0.08349304374739283,
+                        0.09609414523049431
+                        ],
+                        [
+                        0.4561129542902446, 0.9538394630885084, -2.825330296664123,
+                        -2.334613611419187
+                        ]
+                    ]
+                    },
+                    {
+                    "activationFunction": 2,
+                    "bias": [
+                        -2.2411061503791168e-7, -3.1034365622270295e-7, -0.0071385247919979146,
+                        -0.05938659439333594, -0.0042402320760852
+                    ],
+                    "dropOut": 0.0,
+                    "inputSize": 2,
+                    "outputSize": 5,
+                    "weights": [
+                        [0.07761276375946172, -0.009657275184744879],
+                        [-0.05583640137434418, -0.020520167348293886],
+                        [0.0598274549951375, 3.0918124876854023],
+                        [0.019612654606685084, 1.0444876714184785],
+                        [-0.05842645281322193, 2.34373381525731]
+                    ]
+                    },
+                    {
+                    "activationFunction": 4,
+                    "bias": [-4.179055764792003, 1.96682621188172, 5.249449168299232],
+                    "dropOut": 0.0,
+                    "inputSize": 5,
+                    "outputSize": 3,
+                    "weights": [
+                        [
+                        -0.058839361149710286, -0.08434826150741549, 1.993527038790463,
+                        0.7667121920923895, 1.4707015926604516
+                        ],
+                        [
+                        -0.000982528760024976, 0.029823991648432937, 1.3844680098786148,
+                        0.37708103391606607, 1.1566501465547734
+                        ],
+                        [
+                        0.0693492906978207, 0.08485103545013141, -1.8879924350818913,
+                        -0.5986392654413258, -1.3897169174049828
+                        ]
+                    ]
+                    }
+                ],
+                "inputDim": 4,
+                "numberOfLayers": 3
+                }
+        )";
 
-        std::cout << std::get<double>(stud["rollno"].getVar()) << '\n';
-
-        // --- 2. Nested Array Creation ---
-        // Testing if we can wrap a vector into a JsonValue
-        std::vector<json::JsonValue> spi_list = {
-            json::JsonValue(9.63), 
-            json::JsonValue(9.80), 
-            json::JsonValue(10.0)
-        };
-        stud["sem_wise_spi"] = spi_list;
-
-        // --- 3. Retrieval and Verification ---
-        std::cout << "Testing retrieval...\n";
-
-        // Accessing the name
-        // Note: You'll need to expose a way to get the variant or use a getter
-        std::string name = stud["name"].get<std::string>();
-        std::cout << "Name: " << name << "\n";
-        assert(name == "Bhanu Verma");
-
-        // Accessing the number
-        double cpi = stud["cpi"].get<double>();
-        std::cout << "CPI: " << cpi << "\n";
-        assert(cpi == 9.77);
-
-        // --- 4. Deep Nesting Test ---
-        json::Json address;
-        address["city"] = "Varanasi"s;
-        address["zip"] = 221005.0;
-        
-        stud["location"] = address;
-
-        std::cout << "City: " << stud["location"]["city"].get<std::string>() << "\n";
-        
-        std::cout << "\nAll manual construction tests passed!\n";
-
-        json::Json brv;
-        brv["branch"] = json::JsonValue("cse");
-        brv["names"] = std::vector<json::JsonValue>{};
-        brv["bhanu"] = json::JsonValue(stud);
-
-        const std::string pretty_brv = json::prettyPrint(brv);
-        std::cout << pretty_brv << '\n';
-
-    } catch (const std::exception& e) {
-        std::cerr << "Test failed with error: " << e.what() << "\n";
+        json::Json nn = json::parse(neuralNet);
+        std::cout << nn << '\n';
+        // MyTester::runAllTests();
+    } catch (std::string_view e) {
+        std::cerr << e << "\n";
         return 1;
     }
 

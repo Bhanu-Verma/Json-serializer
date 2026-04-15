@@ -31,6 +31,7 @@ namespace json
     };
 
     std::string prettyPrint( const Json& obj );
+    std::ostream& operator<<(std::ostream& o, const Json& j);
 }
 
 #endif

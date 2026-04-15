@@ -6,5 +6,6 @@
 #include "test_case.hpp"
 #include "test_runner.hpp"
 #include "test_gen_macro.hpp"
+#include "assert_throws.hpp"
 
 #endif
