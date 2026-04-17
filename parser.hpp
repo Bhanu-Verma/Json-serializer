@@ -4,7 +4,7 @@
 #include "json_lib.hpp"
 
 namespace json {
-    Json parse( const std::string& str );
+    Json parse( std::string_view str );
 };  
 
 #endif

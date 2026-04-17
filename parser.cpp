@@ -3,25 +3,30 @@
 
 #include <array>
 #include <algorithm>
+#include <charconv>     // For string to double conversion using std::from_chars
 
-json::Json parseJsonObj( const std::string &input, std::size_t& pos );
-std::vector<json::JsonValue> parseArray( const std::string& input, std::size_t& pos );
+json::Json parseJsonObj( std::string_view input, std::size_t& pos );
+std::vector<json::JsonValue> parseArray( std::string_view input, std::size_t& pos );
 
 
 constexpr std::array whitespaces{ ' ', '\n', '\t', '\r' };
-bool isWhitespace ( char ch ) {
-    return std::find(whitespaces.cbegin(), whitespaces.cend(), ch) != whitespaces.cend();
-}
+
+static constexpr auto lookupTalbe = []() {
+    std::array<uint8_t, 256> table{}; 
+    for (char c : whitespaces) {
+        table[static_cast<unsigned char>(c)] = 1;
+    }
+    return table;
+}();
+
 constexpr std::string_view ERROR_MSG = "Invalid Json Object";
 
-
-
-void skip_whitespace( const std::string &input, std::size_t& pos) {
-    while ( pos < input.size() && isWhitespace(input[pos]) ) ++pos; 
+void skip_whitespace( std::string_view input, std::size_t& pos) {
+    while ( pos < input.size() && lookupTalbe[static_cast<unsigned char>(input[pos])] ) ++pos; 
 }
 
 
-bool parseBoolean( const std::string& input, std::size_t& pos ) {
+bool parseBoolean( std::string_view input, std::size_t& pos ) {
     if ( input.compare(pos, 4, "true") == 0 ) {
         pos += 4;
         return true;
@@ -35,7 +40,7 @@ bool parseBoolean( const std::string& input, std::size_t& pos ) {
     throw ERROR_MSG;
 }
 
-std::nullptr_t parseNull( const std::string& input, std::size_t& pos ) {
+std::nullptr_t parseNull( std::string_view input, std::size_t& pos ) {
     if ( input.compare(pos, 4, "null") == 0 ) {
         pos += 4;
         return nullptr;
@@ -46,33 +51,25 @@ std::nullptr_t parseNull( const std::string& input, std::size_t& pos ) {
 /**
  * @pre pos at digit or '-' or '+'
  */
-double parseNumber( const std::string& input, std::size_t& pos ) {
-    // Gather all possible characters that can be included in number
-    std::size_t ptr = pos;
-    while ( ptr < input.size() ) {
-        char ch = input[ptr];
-        if ( isdigit(ch) || ch == 'e' || ch == 'E' || ch == '.' || ch == '+' || ch == '-' ) ++ptr;
-        else break;
-    }
-
-    std::string numStr = input.substr(pos, ptr - pos);
-    try{
-        std::size_t taken = 0;
-        double d = std::stod(numStr, &taken);
-        pos += taken;
-        return d;
-    }
-    catch(...) {
-        throw ERROR_MSG;
-    }
+double parseNumber( std::string_view input, std::size_t& pos ) {
+    // '+' is not allowed as the first character
+    if ( input[pos] == '+' ) ++pos;
+    const char* first = input.data() + pos;
+    const char* last = input.data() + input.size();
+    double val;
+    auto [ptr, ec] = std::from_chars(first, last, val);
     
+    if (ec != std::errc()) throw ERROR_MSG;
+    
+    pos += (ptr - first);
+    return val;
 }
 
 /**
  * parses a string
  * @pre pos at '"'
  */
-std::string parseString( const std::string& input, std::size_t& pos ) {
+std::string parseString( std::string_view input, std::size_t& pos ) {
     ++pos;      // Move pointer ahead of '"'
 
     std::string res = "";
@@ -111,7 +108,7 @@ std::string parseString( const std::string& input, std::size_t& pos ) {
  * parses a JsonValue
  * @pre pos not at whitespace
  */
-json::JsonValue parseValue( const std::string& input, std::size_t& pos ) {
+json::JsonValue parseValue( std::string_view input, std::size_t& pos ) {
     char c = input[pos];
 
     if ( c == 'n' ) return json::JsonValue( parseNull(input, pos) );
@@ -127,7 +124,7 @@ json::JsonValue parseValue( const std::string& input, std::size_t& pos ) {
 /**
  * @pre pos at '['
  */
-std::vector<json::JsonValue> parseArray( const std::string& input, std::size_t& pos ) {
+std::vector<json::JsonValue> parseArray( std::string_view input, std::size_t& pos ) {
     ++pos;
 
     std::vector<json::JsonValue> res;
@@ -138,7 +135,6 @@ std::vector<json::JsonValue> parseArray( const std::string& input, std::size_t& 
         skip_whitespace(input, pos);
         
         res.push_back(parseValue(input, pos));
-
 
         skip_whitespace(input, pos);
 
@@ -155,7 +151,7 @@ std::vector<json::JsonValue> parseArray( const std::string& input, std::size_t& 
  * parses a json object
  * @pre pos is at '{'
  */
-json::Json parseJsonObj( const std::string &input, std::size_t& pos ) {
+json::Json parseJsonObj( std::string_view input, std::size_t& pos ) {
     ++pos;      // Move pointer ahead of '{'
     
     json::Json j;
@@ -167,7 +163,7 @@ json::Json parseJsonObj( const std::string &input, std::size_t& pos ) {
         if ( pos >= input.size() || input[pos] != '"' ) {
             throw ERROR_MSG;
         }
-        const std::string key = parseString(input, pos);
+        std::string key = parseString(input, pos);
 
         skip_whitespace(input, pos);
 
@@ -182,10 +178,10 @@ json::Json parseJsonObj( const std::string &input, std::size_t& pos ) {
         
         skip_whitespace(input, pos);
         
-        if ( pos >= input.size() || (input[pos] != ',' && input[pos] != '}')) throw ERROR_MSG;
+        if ( pos >= input.size() || (input[pos] != ',' && input[pos] != '}') ) throw ERROR_MSG;
         if ( input[pos] == ',' ) ++pos;  
 
-        j[key] = val;
+        j[std::move(key)] = std::move(val);
     }
 
     if ( pos >= input.size() ) throw ERROR_MSG;
@@ -193,7 +189,7 @@ json::Json parseJsonObj( const std::string &input, std::size_t& pos ) {
     return j;
 }
 
-json::Json json::parse( const std::string &input )
+json::Json json::parse( std::string_view input )
 {
     std::size_t currPos = 0;
     skip_whitespace(input, currPos);  

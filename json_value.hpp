@@ -41,12 +41,12 @@ namespace json {
         constexpr JsonValue(double val) 
             : type_{Number}, data_{val} {}
 
-        JsonValue(const std::string& val);
+        JsonValue(std::string val);
         JsonValue(const char* val);
-        JsonValue(const std::vector<JsonValue>& val);
+        JsonValue(std::vector<JsonValue> val);
         
         
-        JsonValue(const Json& val);
+        JsonValue(Json val);
 
         // 2. Special Member Functions 
         JsonValue(const JsonValue& other);

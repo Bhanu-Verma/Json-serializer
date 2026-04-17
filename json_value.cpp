@@ -4,17 +4,17 @@
 #include <cassert>
 
 namespace json {
-    JsonValue::JsonValue(const std::string& val) 
-        : type_{String}, data_{val} {}
+    JsonValue::JsonValue( std::string val ) 
+        : type_{String}, data_{ std::move(val) } {}
 
     JsonValue::JsonValue(const char* val) 
         : type_{String}, data_{std::string(val)} {}
 
-    JsonValue::JsonValue(const std::vector<JsonValue>& val) 
-        : type_{Array}, data_{val} {}
+    JsonValue::JsonValue( std::vector<JsonValue> val) 
+        : type_{Array}, data_{ std::move(val) } {}
 
-    JsonValue::JsonValue(const Json& val) 
-        : type_{Object}, data_{std::make_unique<Json>(val)} {}
+    JsonValue::JsonValue( Json val ) 
+        : type_{Object}, data_{std::make_unique<Json>( std::move(val) )} {}
 
     // Copy constructor
     JsonValue::JsonValue(const JsonValue& other) : type_{other.type_} {

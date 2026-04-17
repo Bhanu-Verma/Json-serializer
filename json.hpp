@@ -23,8 +23,12 @@ namespace json
         std::unordered_map<std::string, JsonValue> obj_;
     public:
         Json() = default;
+
         JsonValue& operator[](const std::string& key) { return obj_[key]; }
         const JsonValue& operator[](const std::string& key) const { return obj_.at(key); }
+
+        JsonValue& operator[]( std::string&& key) { return obj_[std::move(key)]; }
+        const JsonValue& operator[]( std::string&& key) const { return obj_.at(std::move(key)); }
 
         // Serialization
         std::string serialize(int indent = -1) const;  // indent -1 indicates no pretty print
