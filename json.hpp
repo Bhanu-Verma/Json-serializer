@@ -10,15 +10,6 @@
 
 namespace json
 {
-    std::string get_str( const std::string& s, int );
-    std::string get_str( bool val, int );
-    std::string get_str( double val, int );
-    std::string get_str( std::nullptr_t, int );
-    std::string get_str( std::monostate, int );
-    std::string get_str( const json::Json& obj, int );
-    std::string get_str( const json::JsonValue& jVal, int );
-    std::string get_str( const std::vector<json::JsonValue>& v, int );
-
     class Json {
         std::unordered_map<std::string, JsonValue> obj_;
     public:

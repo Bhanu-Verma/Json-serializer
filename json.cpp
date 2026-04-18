@@ -7,37 +7,48 @@ auto isPretty = []( int indent ) -> bool { return (indent != -1); };
 auto nextIndent = []( int indent ) -> int { return (indent == -1 )? -1 : indent + 1; };
 constexpr auto INDENT_CHAR = ' ';
 
+
+std::string get_str( const std::string& s, int );
+std::string get_str( bool val, int );
+std::string get_str( double val, int );
+std::string get_str( std::nullptr_t, int );
+std::string get_str( std::monostate, int );
+std::string get_str( const json::Json& obj, int );
+std::string get_str( const json::JsonValue& jVal, int );
+std::string get_str( const std::vector<json::JsonValue>& v, int );
+
+
 /**
  * Helper functions to get the pieces of serialized json string
  */
-std::string json::get_str( const std::string& s, int /* indent */ ) {   // indentation is not used anyway
+std::string get_str( const std::string& s, int /* indent */ ) {   // indentation is not used anyway
     return "\"" + s + "\"";
 }
 
-std::string json::get_str( bool val, int /* indent */ ) {
+std::string get_str( bool val, int /* indent */ ) {
     return (val)? "true": "false";
 }
 
-std::string json::get_str( double val, int /* indent */ ) {
+std::string get_str( double val, int /* indent */ ) {
     std::ostringstream ss;
     ss << val;
     return ss.str();
 }
 
-std::string json::get_str( std::nullptr_t, int /* indent */ ) {
+std::string get_str( std::nullptr_t, int /* indent */ ) {
     return "null";
 }
 
-std::string json::get_str( std::monostate, int /* indent */ ) {
+std::string get_str( std::monostate, int /* indent */ ) {
     return "null";
 }
 
 
-std::string json::get_str( const json::Json& obj, int indent ) {
+std::string get_str( const json::Json& obj, int indent ) {
     return obj.serialize(indent);
 } 
 
-std::string json::get_str( const json::JsonValue& jVal, int indent ) {
+std::string get_str( const json::JsonValue& jVal, int indent ) {
     auto func = [indent = indent]( const auto& val) -> std::string {
         using T = std::decay_t<decltype(val)>;
         if constexpr ( std::is_same_v<T, std::unique_ptr<json::Json>> ) {
@@ -50,7 +61,7 @@ std::string json::get_str( const json::JsonValue& jVal, int indent ) {
     return std::visit(func, jVal.getVar());
 } 
 
-std::string json::get_str( const std::vector<json::JsonValue>& v, int indent ) {
+std::string get_str( const std::vector<json::JsonValue>& v, int indent ) {
     if ( v.empty() ) return "[]";
 
     bool pretty = isPretty(indent);

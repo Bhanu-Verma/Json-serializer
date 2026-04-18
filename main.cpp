@@ -22,7 +22,8 @@ int main() {
             json_file_content += temp;
         }
 
-        Benchmarker::run("Parser", [](std::string_view sv){ return json::parse(sv); }, 10, json_file_content );  
+        json::Json obj = json::parse( json_file_content );
+        Benchmarker::run("Serializer", [](const json::Json& j){ return j.serialize(); }, 10, obj );  
     } catch (std::string_view e) {
         std::cerr << e << "\n";
         return 1;
