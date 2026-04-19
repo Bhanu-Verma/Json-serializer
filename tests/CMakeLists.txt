@@ -13,6 +13,9 @@ target_include_directories(unit_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
 
+# Copy data file to the build directory so the executable can find it
+configure_file(${CMAKE_SOURCE_DIR}/large.json ${CMAKE_BINARY_DIR}/tests/large.json COPYONLY)
+
 # Ensure the benchmark can find your benchmarking header
 target_include_directories(benchmark_parser PRIVATE ${CMAKE_SOURCE_DIR}/include)
 

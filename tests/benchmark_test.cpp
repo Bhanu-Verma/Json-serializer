@@ -4,7 +4,7 @@
 #include <sstream>
 
 int main() {
-    std::ifstream file("5mb.json");
+    std::ifstream file("large.json");
     std::stringstream buffer;
     buffer << file.rdbuf();
     std::string input = buffer.str();
@@ -18,5 +18,6 @@ int main() {
                         input
                     );
     }
+    
     return 0;
 }
