@@ -3,3 +3,4 @@
 *.obj
 .vscode/
 nlohman*
+build/*
