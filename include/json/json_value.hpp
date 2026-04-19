@@ -76,7 +76,7 @@ namespace json {
         template <typename T, 
         typename = std::enable_if_t<!std::is_same_v<std::__remove_cvref_t<T>, JsonValue>>>
         JsonValue& operator=(T&& val){
-            using Type = std::__remove_cvref_t<T>;
+            using Type = std::decay_t<std::__remove_cvref_t<T>>;
             static_assert(
                 std::is_same_v<Type, std::nullptr_t> ||
                 std::is_same_v<Type, bool> ||
