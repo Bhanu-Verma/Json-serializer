@@ -70,6 +70,27 @@ double parseNumber( std::string_view input, std::size_t& pos ) {
     return val;
 }
 
+std::string encode_utf8(uint32_t cp) {
+    std::string result;
+    if (cp <= 0x7F) {
+        result += static_cast<char>(cp);
+    } else if (cp <= 0x7FF) {
+        result += static_cast<char>(0xC0 | (cp >> 6));
+        result += static_cast<char>(0x80 | (cp & 0x3F));
+    } else if (cp <= 0xFFFF) {
+        result += static_cast<char>(0xE0 | (cp >> 12));
+        result += static_cast<char>(0x80 | ((cp >> 6) & 0x3F));
+        result += static_cast<char>(0x80 | (cp & 0x3F));
+    } else {
+        // Handle 4-byte characters
+        result += static_cast<char>(0xF0 | (cp >> 18));
+        result += static_cast<char>(0x80 | ((cp >> 12) & 0x3F));
+        result += static_cast<char>(0x80 | ((cp >> 6) & 0x3F));
+        result += static_cast<char>(0x80 | (cp & 0x3F));
+    }
+    return result;
+}
+
 /**
  * parses a string
  * @pre pos at '"'
@@ -92,6 +113,14 @@ std::string parseString( std::string_view input, std::size_t& pos ) {
                 case 'n':  res += '\n'; break;
                 case 'r':  res += '\r'; break;
                 case 't':  res += '\t'; break;
+                case 'u': {
+                    if (pos + 4 >= input.size()) throw ERROR_MSG;
+                    std::string hex = std::string(input.data() + pos + 1, 4);
+                    uint32_t codepoint = std::stoul(hex, nullptr, 16);
+                    res += encode_utf8(codepoint);
+                    pos += 4;
+                    break;
+                }
                 default:
                     throw ERROR_MSG; // Invalid escape sequence
             }
